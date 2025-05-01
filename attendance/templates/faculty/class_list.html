@@ -1,0 +1,180 @@
+{% extends 'base.html' %}
+{% block title %}My Classes - Edulink{% endblock %}
+
+{% block authenticated_content %}
+<div class="bg-white rounded-lg shadow-lg">
+    <!-- Header -->
+    <div class="px-6 py-4 border-b border-gray-200">
+        <div class="flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-gray-900">My Classes</h1>
+            <button type="button" id="add_new" 
+                    class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700">
+                <i class="fas fa-plus mr-2"></i> Add New Class
+            </button>
+        </div>
+    </div>
+
+    <!-- Class List -->
+    <div class="p-6">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Class Name</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Schedule</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Course</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Students</th>
+                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for class in classes %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ class.name }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ class.schedule }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ class.course.name }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ class.classstudent_set.count }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
+                            <div class="flex justify-center space-x-2">
+                                <a href="{% url 'attendance-page' class.id %}" class="text-indigo-600 hover:text-indigo-900" title="Take Attendance">
+                                    <i class="fas fa-clipboard-list"></i>
+                                </a>
+                                <a href="{% url 'view-class' class.id %}" class="text-blue-600 hover:text-blue-900" title="View Students">
+                                    <i class="fas fa-users"></i>
+                                </a>
+                                <button class="text-red-600 hover:text-red-900 delete-class" data-id="{{ class.id }}" title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">
+                            No classes assigned yet. Click "Add New Class" to create one.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Add Class Modal -->
+<div id="classModal" class="hidden fixed inset-0 bg-gray-500 bg-opacity-75">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-lg p-6 max-w-lg w-full mx-4">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Add New Class</h3>
+            <form id="class-form" class="space-y-4">
+                {% csrf_token %}
+                <input type="hidden" name="assigned_faculty" value="{{ user.profile.id }}">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Class Name</label>
+                    <input type="text" name="name" required
+                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Course</label>
+                    <select name="course" required
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                        <option value="">Select Course</option>
+                        {% for course in courses %}
+                        <option value="{{ course.id }}">{{ course.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Schedule</label>
+                    <input type="text" name="schedule" required
+                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                           placeholder="e.g., Monday and Wednesday, 9:00 AM - 10:30 AM">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">School Year</label>
+                    <input type="text" name="school_year" required
+                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                           value="2024-2025">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Level</label>
+                    <input type="text" name="level" required
+                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                           value="1st Year">
+                </div>
+                <div class="flex justify-end space-x-3 mt-6">
+                    <button type="button" onclick="closeModal()" 
+                            class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+                        Cancel
+                    </button>
+                    <button type="submit" 
+                            class="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700">
+                        Save Class
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% block ScriptBlock %}
+<script>
+function showModal() {
+    document.getElementById('classModal').classList.remove('hidden');
+}
+
+function closeModal() {
+    document.getElementById('classModal').classList.add('hidden');
+}
+
+$(document).ready(function() {
+    // Show modal when Add New button is clicked
+    $('#add_new').click(showModal);
+
+    // Handle form submission
+    $('#class-form').submit(function(e) {
+        e.preventDefault();
+        
+        $.ajax({
+            url: "{% url 'save-class' %}",
+            method: 'POST',
+            data: $(this).serialize(),
+            success: function(response) {
+                if(response.status === 'success') {
+                    closeModal();
+                    location.reload();
+                } else {
+                    alert(response.msg || 'Error saving class');
+                }
+            },
+            error: function() {
+                alert('Error saving class');
+            }
+        });
+    });
+
+    // Delete Class
+    $('.delete-class').click(function() {
+        if(confirm('Are you sure you want to delete this class?')) {
+            var classId = $(this).data('id');
+            $.ajax({
+                url: "{% url 'delete-class' %}",
+                type: 'POST',
+                data: {
+                    'id': classId,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'
+                },
+                success: function(response) {
+                    if(response.status == 'success') {
+                        location.reload();
+                    } else {
+                        alert('Error deleting class');
+                    }
+                }
+            });
+        }
+    });
+});
+</script>
+{% endblock %}
+{% endblock %} 

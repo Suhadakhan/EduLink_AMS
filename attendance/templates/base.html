@@ -1,0 +1,201 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Edulink{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        function uni_modal(title, url, size='modal-md') {
+            $.ajax({
+                url: url,
+                error: err => {
+                    console.error("Error loading modal:", err);
+                    alert("An error occurred");
+                },
+                success: function(resp) {
+                    if (resp) {
+                        $('#uni_modal .modal-title').html(title);
+                        $('#uni_modal .modal-body').html(resp);
+                        $('#uni_modal').modal('show');
+                        
+                        // Initialize any select2 dropdowns if present
+                        if ($.fn.select2) {
+                            $('.select2').select2({
+                                dropdownParent: $('#uni_modal')
+                            });
+                        }
+                    }
+                }
+            });
+        }
+
+        function start_loader() {
+            Swal.fire({
+                title: 'Loading...',
+                text: 'Please wait...',
+                allowOutsideClick: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+        }
+
+        function end_loader() {
+            Swal.close();
+        }
+
+        function alert_toast(msg, type) {
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: type,
+                title: msg,
+                showConfirmButton: false,
+                timer: 1500
+            });
+        }
+
+        function _conf(msg, func, args) {
+            Swal.fire({
+                title: 'Are you sure?',
+                text: msg,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, proceed!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window[func](...args);
+                }
+            });
+        }
+    </script>
+</head>
+
+<body class="bg-gray-50 font-[Inter]">
+    {% if not user.is_authenticated %}
+        {% block unauthenticated_content %}{% endblock %}
+    {% else %}
+    <div class="flex">
+        <!-- Sidebar -->
+        <div class="fixed inset-y-0 left-0 w-64 bg-gray-900">
+            <div class="flex items-center justify-center h-16 bg-gray-800">
+                <span class="text-xl font-bold text-white">Edulink</span>
+            </div>
+            
+            <!-- Navigation Menu -->
+            <nav class="mt-5 px-2">
+                {% if user.profile.user_type == 1 %}
+                <!-- Admin Menu -->
+                <div class="flex flex-col space-y-2">
+                    <a href="{% url 'home-page' %}" class="flex items-center px-4 py-2.5 text-sm font-medium text-gray-300 hover:bg-gray-800 hover:text-white rounded-md transition-all duration-200">
+                        <i class="fas fa-home w-6"></i> Dashboard
+                    </a>
+                    <a href="{% url 'department-page' %}" class="flex items-center px-4 py-2.5 text-sm font-medium text-gray-300 hover:bg-gray-800 hover:text-white rounded-md transition-all duration-200">
+                        <i class="fas fa-building w-6"></i> Departments
+                    </a>
+                    <a href="{% url 'course-page' %}" class="flex items-center px-4 py-2.5 text-sm font-medium text-gray-300 hover:bg-gray-800 hover:text-white rounded-md transition-all duration-200">
+                        <i class="fas fa-book w-6"></i> Courses
+                    </a>
+                    <a href="{% url 'faculty-page' %}" class="flex items-center px-4 py-2.5 text-sm font-medium text-gray-300 hover:bg-gray-800 hover:text-white rounded-md transition-all duration-200">
+                        <i class="fas fa-chalkboard-teacher w-6"></i> Faculty
+                    </a>
+                    <a href="{% url 'student-page' %}" class="flex items-center px-4 py-2.5 text-sm font-medium text-gray-300 hover:bg-gray-800 hover:text-white rounded-md transition-all duration-200">
+                        <i class="fas fa-user-graduate w-6"></i> Students
+                    </a>
+                    <a href="{% url 'reports' %}" class="flex items-center px-4 py-2.5 text-sm font-medium text-gray-300 hover:bg-gray-800 hover:text-white rounded-md transition-all duration-200">
+                        <i class="fas fa-file-pdf w-6"></i> Reports
+                    </a>
+                </div>
+
+                {% elif user.profile.user_type == 2 %}
+                <!-- Faculty Menu -->
+                <div class="flex flex-col space-y-2">
+                    <a href="{% url 'home-page' %}" class="flex items-center px-4 py-2.5 text-sm font-medium text-gray-300 hover:bg-gray-800 hover:text-white rounded-md transition-all duration-200">
+                        <i class="fas fa-home w-6"></i> Dashboard
+                    </a>
+                    <a href="{% url 'faculty-students' %}" class="flex items-center px-4 py-2.5 text-sm font-medium text-gray-300 hover:bg-gray-800 hover:text-white rounded-md transition-all duration-200">
+                        <i class="fas fa-user-graduate w-6"></i> Students
+                    </a>
+                    <a href="{% url 'class-page' %}" class="flex items-center px-4 py-2.5 text-sm font-medium text-gray-300 hover:bg-gray-800 hover:text-white rounded-md transition-all duration-200">
+                        <i class="fas fa-chalkboard w-6"></i> Classes
+                    </a>
+                    <a href="{% url 'attendance-class' %}" class="flex items-center px-4 py-2.5 text-sm font-medium text-gray-300 hover:bg-gray-800 hover:text-white rounded-md transition-all duration-200">
+                        <i class="fas fa-clipboard-list w-6"></i> Attendance
+                    </a>
+                    <a href="{% url 'faculty-leave-applications' %}" class="flex items-center px-4 py-2.5 text-sm font-medium text-gray-300 hover:bg-gray-800 hover:text-white rounded-md transition-all duration-200">
+                        <i class="fas fa-calendar-minus w-6"></i> Leave Applications
+                    </a>
+                    <a href="{% url 'faculty-feedback' %}" class="flex items-center px-4 py-2.5 text-sm font-medium text-gray-300 hover:bg-gray-800 hover:text-white rounded-md transition-all duration-200">
+                        <i class="fas fa-comment w-6"></i> Student Feedback
+                    </a>
+                    <a href="{% url 'faculty-data-management' %}" class="flex items-center px-4 py-2.5 text-sm font-medium text-gray-300 hover:bg-gray-800 hover:text-white rounded-md transition-all duration-200">
+                        <i class="fas fa-database w-6"></i> Data Management
+                    </a>
+                </div>
+
+                {% else %}
+                <!-- Student Menu -->
+                <div class="flex flex-col space-y-2">
+                    <a href="{% url 'home-page' %}" class="flex items-center px-4 py-2.5 text-sm font-medium text-gray-300 hover:bg-gray-800 hover:text-white rounded-md transition-all duration-200">
+                        <i class="fas fa-home w-6"></i> Dashboard
+                    </a>
+                    <a href="{% url 'student-attendance' %}" class="flex items-center px-4 py-2.5 text-sm font-medium text-gray-300 hover:bg-gray-800 hover:text-white rounded-md transition-all duration-200">
+                        <i class="fas fa-clipboard-list w-6"></i> My Attendance
+                    </a>
+                    <a href="{% url 'leave-application' %}" class="flex items-center px-4 py-2.5 text-sm font-medium text-gray-300 hover:bg-gray-800 hover:text-white rounded-md transition-all duration-200">
+                        <i class="fas fa-calendar-minus w-6"></i> Leave Application
+                    </a>
+                    <a href="{% url 'feedback' %}" class="flex items-center px-4 py-2.5 text-sm font-medium text-gray-300 hover:bg-gray-800 hover:text-white rounded-md transition-all duration-200">
+                        <i class="fas fa-comment w-6"></i> Feedback
+                    </a>
+                </div>
+                {% endif %}
+
+                <!-- Profile Section -->
+                <div class="mt-6 pt-6 border-t border-gray-700">
+                    <div class="flex flex-col space-y-2">
+                        <a href="{% url 'profile' %}" class="flex items-center px-4 py-2.5 text-sm font-medium text-gray-300 hover:bg-gray-800 hover:text-white rounded-md transition-all duration-200">
+                            <i class="fas fa-user w-6"></i> Profile
+                        </a>
+                        <a href="{% url 'logout' %}" class="flex items-center px-4 py-2.5 text-sm font-medium text-red-400 hover:bg-red-900/50 hover:text-red-200 rounded-md transition-all duration-200">
+                            <i class="fas fa-sign-out-alt w-6"></i> Logout
+                        </a>
+                    </div>
+                </div>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 ml-64">
+            <main class="p-6">
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="mb-4 p-4 rounded-md {% if message.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-700{% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+                
+                {% block authenticated_content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+    {% endif %}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,145 @@
+{% load static %}
+<form id="faculty-form" method="post" class="p-4 max-w-md mx-auto">
+    {% csrf_token %}
+    {% if faculty %}
+    <input type="hidden" name="id" value="{{ faculty.id }}">
+    {% endif %}
+    
+    <div class="space-y-4">
+        <div class="form-group">
+            <label for="first_name" class="block text-sm font-medium text-gray-700">
+                First Name <span class="text-red-500">*</span>
+            </label>
+            <input type="text" name="first_name" id="first_name" 
+                   class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" 
+                   value="{{ faculty.user.first_name|default:'' }}" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="last_name" class="block text-sm font-medium text-gray-700">
+                Last Name <span class="text-red-500">*</span>
+            </label>
+            <input type="text" name="last_name" id="last_name" 
+                   class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" 
+                   value="{{ faculty.user.last_name|default:'' }}" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="email" class="block text-sm font-medium text-gray-700">
+                Email <span class="text-red-500">*</span>
+            </label>
+            <input type="email" name="email" id="email" 
+                   class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" 
+                   value="{{ faculty.user.email|default:'' }}" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="department" class="block text-sm font-medium text-gray-700">
+                Department <span class="text-red-500">*</span>
+            </label>
+            <select name="department" id="department" 
+                    class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" 
+                    required>
+                <option value="">Select Department</option>
+                {% for dept in departments %}
+                <option value="{{ dept.id }}" {% if faculty.department.id == dept.id %}selected{% endif %}>
+                    {{ dept.name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="contact" class="block text-sm font-medium text-gray-700">
+                Contact <span class="text-red-500">*</span>
+            </label>
+            <input type="text" name="contact" id="contact" 
+                   class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" 
+                   value="{{ faculty.contact|default:'' }}" required>
+        </div>
+        
+        {% if not faculty %}
+        <div class="form-group">
+            <label for="password" class="block text-sm font-medium text-gray-700">
+                Password <span class="text-red-500">*</span>
+            </label>
+            <input type="password" name="password" id="password" 
+                   class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" 
+                   required>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="mt-6 flex justify-end space-x-3">
+        <button type="button" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+                onclick="closeModal()">Cancel</button>
+        <button type="submit" 
+                class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700">
+            Save
+        </button>
+    </div>
+</form>
+
+<script>
+$(document).ready(function() {
+    $('#faculty-form').submit(function(e) {
+        e.preventDefault();
+        console.log("Form submitted");
+        
+        var formData = new FormData(this);
+        
+        $.ajax({
+            url: '{% url "save-faculty" %}',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(response) {
+                console.log("Response:", response);
+                if (response.status === 'success') {
+                    alert('Faculty saved successfully!');
+                    location.reload();
+                } else {
+                    alert(response.msg || 'Error saving faculty');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error("Error:", error);
+                alert('Error saving faculty. Please try again.');
+            }
+        });
+    });
+});
+
+function closeModal() {
+    var modal = bootstrap.Modal.getInstance(document.getElementById('uni_modal'));
+    if (modal) {
+        modal.hide();
+    }
+}
+</script>
+
+<style>
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-group label {
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.text-red-500 {
+    color: #EF4444;
+}
+
+/* Remove any extra padding/margin */
+.modal-body {
+    padding: 1rem !important;
+}
+
+.modal-dialog {
+    max-width: 24rem !important;
+    margin: 1.75rem auto;
+}
+</style> 

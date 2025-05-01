@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Faculty Dashboard - Edulink{% endblock %}
+
+{% block authenticated_content %}
+<div class="space-y-6">
+    <!-- Search Bar -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <div class="max-w-3xl mx-auto">
+            <div class="flex flex-col md:flex-row gap-4">
+                <div class="flex-1">
+                    <input type="text" 
+                           id="search-input" 
+                           class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                           placeholder="Search by class name, course, or student...">
+                </div>
+                <div class="flex gap-2">
+                    <select id="filter-status" 
+                            class="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        <option value="">All Status</option>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                    </select>
+                    <button id="search-clear" 
+                            class="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200">
+                        Clear
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Classes Table -->
+    <div class="bg-white rounded-lg shadow">
+        <div class="p-6">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">My Classes</h2>
+            <div class="overflow-x-auto">
+                <table id="classes-table" class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Class</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Course</th>
+                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Students</th>
+                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Present</th>
+                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Late</th>
+                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Absent</th>
+                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for class in classes %}
+                        <tr class="class-row">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-900">{{ class.name }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">{{ class.course.name }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center">
+                                <span class="text-blue-600 font-medium">
+                                    {{ class.classstudent_set.all|length }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center">
+                                <span class="text-green-600 font-medium">
+                                    {{ class.attendance_set.filter|length }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center">
+                                <span class="text-yellow-600 font-medium">
+                                    {{ class.attendance_set.filter|length }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center">
+                                <span class="text-red-600 font-medium">
+                                    {{ class.attendance_set.filter|length }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center">
+                                <a href="{% url 'attendance-page' class.id %}" 
+                                   class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
+                                    <i class="fas fa-clipboard-list mr-1"></i> View Details
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block ScriptBlock %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('search-input');
+    const filterStatus = document.getElementById('filter-status');
+    const clearButton = document.getElementById('search-clear');
+    const rows = document.querySelectorAll('.class-row');
+
+    function filterTable() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const statusFilter = filterStatus.value.toLowerCase();
+
+        rows.forEach(row => {
+            const className = row.querySelector('td:first-child').textContent.toLowerCase();
+            const courseName = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+            const studentCount = row.querySelector('td:nth-child(3)').textContent;
+            
+            // Determine status based on student count (you can modify this logic)
+            const status = parseInt(studentCount) > 0 ? 'active' : 'inactive';
+            
+            const matchesSearch = className.includes(searchTerm) || 
+                                courseName.includes(searchTerm) || 
+                                studentCount.includes(searchTerm);
+                                
+            const matchesStatus = !statusFilter || status === statusFilter;
+
+            row.style.display = (matchesSearch && matchesStatus) ? '' : 'none';
+        });
+    }
+
+    searchInput.addEventListener('input', filterTable);
+    filterStatus.addEventListener('change', filterTable);
+    
+    clearButton.addEventListener('click', function() {
+        searchInput.value = '';
+        filterStatus.value = '';
+        rows.forEach(row => row.style.display = '');
+    });
+});
+</script>
+{% endblock %}
+{% endblock %} 

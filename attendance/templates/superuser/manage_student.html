@@ -1,0 +1,141 @@
+{% load static %}
+
+<form id="student-form" method="post" class="p-4 max-w-md mx-auto">
+    {% csrf_token %}
+    {% if student %}
+    <input type="hidden" name="id" value="{{ student.id }}">
+    {% endif %}
+    
+    <div class="space-y-4">
+        <!-- Enrollment Number -->
+        <div class="form-group">
+            <label for="enrollment_number" class="block text-sm font-medium text-gray-700">
+                Enrollment Number <span class="text-red-500">*</span>
+            </label>
+            <input type="text" name="enrollment_number" id="enrollment_number" 
+                   class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" 
+                   value="{{ student.enrollment_number|default:'' }}" required>
+        </div>
+        
+        <!-- First Name -->
+        <div class="form-group">
+            <label for="first_name" class="block text-sm font-medium text-gray-700">
+                First Name <span class="text-red-500">*</span>
+            </label>
+            <input type="text" name="first_name" id="first_name" 
+                   class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" 
+                   value="{{ student.first_name|default:'' }}" required>
+        </div>
+        
+        <!-- Last Name -->
+        <div class="form-group">
+            <label for="last_name" class="block text-sm font-medium text-gray-700">
+                Last Name
+            </label>
+            <input type="text" name="last_name" id="last_name" 
+                   class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" 
+                   value="{{ student.last_name|default:'' }}">
+        </div>
+        
+        <!-- Course -->
+        <div class="form-group">
+            <label for="course" class="block text-sm font-medium text-gray-700">
+                Course <span class="text-red-500">*</span>
+            </label>
+            <select name="course" id="course" 
+                    class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" 
+                    required>
+                <option value="">Select Course</option>
+                {% for course in courses %}
+                <option value="{{ course.id }}" {% if student.course.id == course.id %}selected{% endif %}>
+                    {{ course.name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <!-- Contact -->
+        <div class="form-group">
+            <label for="contact" class="block text-sm font-medium text-gray-700">
+                Contact Number
+            </label>
+            <input type="text" name="contact" id="contact" 
+                   class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" 
+                   value="{{ student.contact|default:'' }}">
+        </div>
+    </div>
+
+    <!-- Form Actions -->
+    <div class="mt-6 flex justify-end space-x-3">
+        <button type="button" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+                onclick="closeModal()">Cancel</button>
+        <button type="submit" 
+                class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700">
+            Save
+        </button>
+    </div>
+</form>
+
+<script>
+$(document).ready(function() {
+    $('#student-form').submit(function(e) {
+        e.preventDefault();
+        var formData = new FormData(this);
+        
+        $.ajax({
+            url: '{% url "save-student" %}',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            success: function(response) {
+                if(response.status === 'success') {
+                    alert('Student saved successfully!');
+                    location.reload();
+                } else {
+                    alert(response.msg || "An error occurred");
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error("Error:", error);
+                alert("An error occurred. Please try again.");
+            }
+        });
+    });
+});
+
+function closeModal() {
+    var modal = bootstrap.Modal.getInstance(document.getElementById('uni_modal'));
+    if (modal) {
+        modal.hide();
+    }
+}
+</script>
+
+<style>
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-group label {
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.text-red-500 {
+    color: #EF4444;
+}
+
+/* Remove any extra padding/margin */
+.modal-body {
+    padding: 1rem !important;
+}
+
+.modal-dialog {
+    max-width: 24rem !important;
+    margin: 1.75rem auto;
+}
+</style> 

@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% block title %}Manage Class - Edulink{% endblock %}
+
+{% block authenticated_content %}
+<div class="container-fluid">
+    <form id="class-form" class="space-y-6">
+        {% csrf_token %}
+        <input type="hidden" name="id" value="{{ class.id|default:'' }}">
+        
+        <div>
+            <label class="block text-sm font-medium text-gray-700">Faculty</label>
+            <select name="assigned_faculty" class="mt-1 block w-full rounded-md border-gray-300" required>
+                <option value="">Select Faculty</option>
+                {% for faculty in faculties %}
+                <option value="{{ faculty.id }}" {% if class.assigned_faculty.id == faculty.id %}selected{% endif %}>
+                    {{ faculty.user.get_full_name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium text-gray-700">School Year</label>
+            <input type="text" name="school_year" value="{{ class.school_year|default:'' }}"
+                   class="mt-1 block w-full rounded-md border-gray-300" required>
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium text-gray-700">Level</label>
+            <input type="text" name="level" value="{{ class.level|default:'' }}"
+                   class="mt-1 block w-full rounded-md border-gray-300" required>
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium text-gray-700">Class Name</label>
+            <input type="text" name="name" value="{{ class.name|default:'' }}"
+                   class="mt-1 block w-full rounded-md border-gray-300" required>
+        </div>
+
+        <div class="flex justify-end">
+            <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
+                Save Class
+            </button>
+        </div>
+    </form>
+</div>
+
+{% block ScriptBlock %}
+<script>
+$(function() {
+    $('#class-form').submit(function(e) {
+        e.preventDefault();
+        var form = $(this);
+        
+        $.ajax({
+            url: "{% url 'save-class' %}",
+            method: 'POST',
+            data: form.serialize(),
+            success: function(response) {
+                if(response.status == 'success') {
+                    location.reload();
+                } else {
+                    alert(response.msg || 'Error saving class');
+                }
+            },
+            error: function() {
+                alert('Error saving class');
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
+{% endblock %} 

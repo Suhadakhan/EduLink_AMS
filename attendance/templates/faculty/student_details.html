@@ -1,0 +1,35 @@
+<style>
+    #uni_modal .modal-footer {
+        display: none
+    }
+    
+    #student-avatar {
+        width: 100%;
+        max-height: 20vh;
+        object-fit: scale-down;
+        object-position: center center;
+    }
+</style>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <dl>
+                <dt class="text-muted">Fullname:</dt>
+                <dd class="ps-3">{{ student.first_name }} {{ student.middle_name }} {{ student.last_name }}</dd>
+                <dt class="text-muted">Gender:</dt>
+                <dd class="ps-3">{{ student.gender }}</dd>
+                <dt class="text-muted">Birthday:</dt>
+                <dd class="ps-3">{{ student.dob|date:"F d, Y" }}</dd>
+                <dt class="text-muted">Contact:</dt>
+                <dd class="ps-3">{{ student.contact }}</dd>
+                <dt class="text-muted">Department:</dt>
+                <dd class="ps-3">{{ student.course.department }}</dd>
+                <dt class="text-muted">Course:</dt>
+                <dd class="ps-3">{{ student.course }}</dd>
+            </dl>
+        </div>
+    </div>
+    <div class="w-100 d-flex justify-content-end mt-3">
+        <button class="btn btn-default border btn-sm" type="button" data-bs-dismiss="modal"><i class="fa fa-times"></i> Close</button>
+    </div>
+</div>

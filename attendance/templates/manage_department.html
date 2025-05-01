@@ -1,0 +1,67 @@
+<div class="container-fluid">
+
+    <form action="{% url 'save-department' %}" id="department-form" method="post">
+
+        {% csrf_token %}
+
+        {% if department %}
+
+        <input type="hidden" name="id" value="{{ department.id }}">
+
+        {% endif %}
+
+        <div class="space-y-4">
+
+            <div>
+
+                <label class="block text-sm font-medium text-gray-700">Department Name</label>
+
+                <input type="text" name="name" value="{{ department.name|default:'' }}" 
+
+                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+
+                       required>
+
+            </div>
+
+            <div>
+
+                <label class="block text-sm font-medium text-gray-700">Description</label>
+
+                <textarea name="description" rows="3" 
+
+                          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">{{ department.description|default:'' }}</textarea>
+
+            </div>
+
+            <div>
+
+                <label class="block text-sm font-medium text-gray-700">Status</label>
+
+                <select name="status" 
+
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+
+                    <option value="1" {% if department.status == 1 %}selected{% endif %}>Active</option>
+
+                    <option value="2" {% if department.status == 2 %}selected{% endif %}>Inactive</option>
+
+                </select>
+
+            </div>
+
+        </div>
+
+    </form>
+
+</div>
+
+<script>
+    console.log('manage_department.html loaded'); // Debug log
+    
+    $(document).ready(function() {
+        console.log('Document ready in manage_department.html'); // Debug log
+        const form = document.querySelector('#department-form');
+        console.log('Found form:', form); // Debug log
+    });
+</script>

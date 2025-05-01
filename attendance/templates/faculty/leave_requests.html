@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+{% block title %}Leave Applications - Edulink{% endblock %}
+
+{% block authenticated_content %}
+<div class="bg-white rounded-lg shadow-lg">
+    <!-- Header -->
+    <div class="px-6 py-4 border-b border-gray-200">
+        <div class="flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-gray-900">Leave Applications</h1>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="p-6 border-b border-gray-200">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                <select id="status-filter" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    <option value="">All Status</option>
+                    <option value="pending">Pending</option>
+                    <option value="approved">Approved</option>
+                    <option value="rejected">Rejected</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Date Range</label>
+                <input type="date" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+            </div>
+        </div>
+    </div>
+
+    <!-- Leave Applications List -->
+    <div class="p-6">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Class</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reason</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for application in leave_applications %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            {{ application.student.first_name }} {{ application.student.last_name }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ application.class_obj.name }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ application.date }}</td>
+                        <td class="px-6 py-4 text-sm text-gray-500">{{ application.reason }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                {% if application.status == 'pending' %}bg-yellow-100 text-yellow-800
+                                {% elif application.status == 'approved' %}bg-green-100 text-green-800
+                                {% else %}bg-red-100 text-red-800{% endif %}">
+                                {{ application.status }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
+                            <div class="flex justify-center space-x-2">
+                                {% if application.status == 'pending' %}
+                                <button class="text-green-600 hover:text-green-900 approve-leave" data-id="{{ application.id }}" title="Approve">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                                <button class="text-red-600 hover:text-red-900 reject-leave" data-id="{{ application.id }}" title="Reject">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                                {% endif %}
+                                <button class="text-blue-600 hover:text-blue-900 view-details" data-id="{{ application.id }}" title="View Details">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="px-6 py-4 text-center text-sm text-gray-500">
+                            No leave applications found
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block ScriptBlock %}
+<script>
+    $(document).ready(function() {
+        // Handle approve leave
+        $('.approve-leave').click(function() {
+            const id = $(this).data('id');
+            // Add your approval logic here
+        });
+
+        // Handle reject leave
+        $('.reject-leave').click(function() {
+            const id = $(this).data('id');
+            // Add your rejection logic here
+        });
+
+        // Handle view details
+        $('.view-details').click(function() {
+            const id = $(this).data('id');
+            // Add your view details logic here
+        });
+
+        // Handle filters
+        $('#status-filter').change(function() {
+            // Add your filter logic here
+        });
+    });
+</script>
+{% endblock %} 

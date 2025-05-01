@@ -1,0 +1,4 @@
+.nav-item {
+    @apply flex items-center px-6 py-2 text-gray-300 hover:bg-gray-800 hover:text-white transition-colors duration-200;
+    width: 100%;
+} 

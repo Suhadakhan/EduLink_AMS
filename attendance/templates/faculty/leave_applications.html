@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% block title %}Leave Applications - Edulink{% endblock %}
+
+{% block authenticated_content %}
+<div class="bg-white rounded-lg shadow-lg p-6">
+    <h2 class="text-2xl font-bold mb-6">Student Leave Applications</h2>
+
+    <div class="space-y-6">
+        {% for application in applications %}
+        <div class="border rounded-lg p-4">
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="font-medium">{{ application.student.get_full_name }} ({{ application.student.enrollment_number }})</p>
+                    <p class="text-sm text-gray-500">{{ application.start_date|date:"M d, Y" }} - {{ application.end_date|date:"M d, Y" }}</p>
+                    <p class="mt-2">{{ application.reason }}</p>
+                </div>
+                <div class="flex flex-col items-end space-y-2">
+                    <span class="px-2 py-1 text-xs font-semibold rounded-full
+                        {% if application.status == 'pending' %}bg-yellow-100 text-yellow-800
+                        {% elif application.status == 'approved' %}bg-green-100 text-green-800
+                        {% else %}bg-red-100 text-red-800{% endif %}">
+                        {{ application.get_status_display }}
+                    </span>
+                    {% if application.status == 'pending' %}
+                    <div class="flex space-x-2">
+                        <button onclick="updateStatus('{{ application.id }}', 'approved')"
+                                class="px-2 py-1 text-xs font-medium text-white bg-green-600 rounded hover:bg-green-700">
+                            Approve
+                        </button>
+                        <button onclick="updateStatus('{{ application.id }}', 'rejected')"
+                                class="px-2 py-1 text-xs font-medium text-white bg-red-600 rounded hover:bg-red-700">
+                            Reject
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <p class="text-gray-500 text-center">No leave applications yet</p>
+        {% endfor %}
+    </div>
+</div>
+
+{% block ScriptBlock %}
+<script>
+function updateStatus(applicationId, status) {
+    $.ajax({
+        url: "{% url 'update-leave-status' %}",
+        type: 'POST',
+        data: {
+            'application_id': applicationId,
+            'status': status,
+            'csrfmiddlewaretoken': '{{ csrf_token }}'
+        },
+        success: function(response) {
+            if(response.status === 'success') {
+                location.reload();
+            } else {
+                alert('Error updating status');
+            }
+        }
+    });
+}
+</script>
+{% endblock %}
+{% endblock %} 

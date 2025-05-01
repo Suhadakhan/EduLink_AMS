@@ -1,0 +1,200 @@
+{% extends 'base.html' %} {% load humanize  %} {% block pageContent %}
+<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+    <div class="card card-default rounded-0 shadow ">
+        <div class="card-header">
+            <div class="d-flex w-100 align-items-center justify-content-between">
+                <h4 class="card-title fw-bold">Class Information</h4>
+                <div class="tools">
+                    <button type="button" class="btn btn-defualt border rounded-0 bg-gradient btn-sm" id='print_attendance_report'><i class="fa fa-print"></i> Print Attendance Report</button>
+                    <button type="button" class="btn btn-primary rounded-0 bg-gradient btn-sm" id='add_new'><i class="fa fa-plus"></i> Add Student</button>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="container-fluid">
+                <fieldset id="class-details">
+                    <legend>Class Details</legend>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="d-flex w-100">
+                                <div class="col-auto pe-2 text-muted">Department:</div>
+                                <div class="col-auto flex-shrink-1 flex-grow-1">
+                                    <p class="m-0 fw-bold">{{ class.assigned_faculty.department }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex w-100">
+                                <div class="col-auto pe-2 text-muted">School Year:</div>
+                                <div class="col-auto flex-shrink-1 flex-grow-1">
+                                    <p class="m-0 fw-bold">{{ class.school_year }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex w-100">
+                                <div class="col-auto pe-2 text-muted">Level:</div>
+                                <div class="col-auto flex-shrink-1 flex-grow-1">
+                                    <p class="m-0 fw-bold">{{ class.level }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex w-100">
+                                <div class="col-auto pe-2 text-muted">Name:</div>
+                                <div class="col-auto flex-shrink-1 flex-grow-1">
+                                    <p class="m-0 fw-bold">{{ class.name }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex w-100">
+                                <div class="col-auto pe-2 text-muted">Faculty:</div>
+                                <div class="col-auto flex-shrink-1 flex-grow-1">
+                                    <p class="m-0 fw-bold">{{ class.assigned_faculty.user.first_name }} {{ class.assigned_faculty.user.last_name }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+                <hr>
+                <fieldset>
+                    <legend>Class Student List</legend>
+                    <table class="table tables-bordered" id="student-list">
+                        <colgroup>
+                            <col width="10%">
+                            <col width="25%">
+                            <col width="25%">
+                            <col width="10%">
+                            <col width="10%">
+                            <col width="10%">
+                            <col width="10%">
+                        </colgroup>
+                        <thead>
+                            <tr>
+                                <th class="text-ceter">#</th>
+                                <th class="text-ceter">Student Code</th>
+                                <th class="text-ceter">Student Name</th>
+                                <th class="text-ceter">Total Tardy</th>
+                                <th class="text-ceter">Total Absent</th>
+                                <th class="text-ceter">Total Present</th>
+                                <th class="text-ceter">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for student in students %}
+                            <tr class="">
+                                <td class="text-center">{{ forloop.counter }}</td>
+                                <td>{{ student.student.student_code }}</td>
+                                <td>{{ student.student.first_name }} {{ student.student.middle_name }} {{ student.student.last_name }}</td>
+                                <td class="text-center">{{ student.get_present|intcomma }}</td>
+                                <td class="text-center">{{ student.get_tardy|intcomma }}</td>
+                                <td class="text-center">{{ student.get_absent|intcomma }}</td>
+                                <td class="text-center">
+                                    <button class="btn btn-outline-danger btn-sm delete-data" type="button" data-id="{{ student.pk }}" title="Delete">
+                                        <i class="fa fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </fieldset>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock pageContent %} {% block ScriptBlock %}
+<script>
+    var studentTbl;
+    $(function() {
+        $('#add_new').click(function() {
+            uni_modal('<i class="fa fa-plus"></i> Add Student to Class', '{% url "class-student-modal" class.pk %}')
+        })
+
+        $('.delete-data').click(function() {
+            _conf("Are you sure to delete this Student from Class List permanently?", "delete_class", [$(this).attr('data-id')])
+        })
+        studentTbl = $('#student-list').clone()
+        studentTbl.addClass('table-bordered table-striped')
+        studentTbl.find('th, td').addClass('px-2 py-1 align-middle')
+        studentTbl.find('th').addClass('text-center')
+        studentTbl.find('colgroup').html('<col width="5%"><col width="25%"><col width="25%"><col width="15%"><col width="15%"><col width="15%">')
+        studentTbl.find('th:nth-last-child(1), td:nth-last-child(1)').remove()
+        $('#print_attendance_report').click(function(){
+            var head  = $('head').clone()
+            var el = $('<div>').clone()
+            var details = $('#class-details').clone()
+            head.find('title').text('Class Attendance Report - Print View')
+            head.append('<style>'+
+                        '@media print{ .row{ margin:unset !important } .col-md-6{ width:50% !important } }'+
+                        '</style>')
+            el.append(head)
+            el.append('<div class="lh-1"><h2 class="text-center fw-bolder">Class Attendance Report</h2></div><hr>')
+            el.append(details)
+            el.append(studentTbl)
+            start_loader()
+            var nw = window.open('','_blank','width=1000,height=900')
+                     nw.document.write(el.html())
+                     nw.document.close()
+                setTimeout(()=>{
+                    nw.print()
+                    setTimeout(()=>{
+                        nw.close()
+                        end_loader()
+                    },300)
+                },500)
+        })
+        $('#student-list').DataTable({
+            columnDefs: [{
+                orderable: false,
+                target: 6
+            }],
+            initComplete: function(settings, json) {
+                $('table td, table th').addClass('px-2 py-1 align-middle')
+            },
+            drawCallback: function(settings) {
+                $('table td, table th').addClass('px-2 py-1 align-middle')
+            }
+        })
+    })
+
+    function delete_class($id) {
+        start_loader();
+        var _this = $(this)
+        $('.err-msg').remove();
+        var el = $('<div>')
+        el.addClass("alert alert-danger err-msg")
+        el.hide()
+        $.ajax({
+            url: '{% url "delete-class-student" %}',
+            headers: {
+                'X-CSRFToken': "{{csrf_token}}"
+            },
+            method: 'POST',
+            data: {
+                id: $id
+            },
+            dataType: 'json',
+            error: err => {
+                console.log(err)
+                el.text('An error occurred.')
+                el.show('slow')
+                end_loader()
+            },
+            success: function(resp) {
+                if (resp.status == 'success') {
+                    location.reload()
+                } else if (!!resp.msg) {
+                    el.text('An error occurred.')
+                    el.show('slow')
+                } else {
+                    el.text('An error occurred.')
+                    el.show('slow')
+                }
+                end_loader()
+            }
+        })
+    }
+</script>
+{% endblock ScriptBlock %}

@@ -1,0 +1,90 @@
+<div class="container-fluid">
+    <form action=" " id="class-form">
+        {% csrf_token %}
+        <input type="hidden" name="id" value="{{ class.id }}">
+        <div class="form-group mb-3">
+            <label for="assigned_faculty" class="control-label">Faculty</label>
+            <select name="assigned_faculty" id="assigned_faculty" class="form-select rounded-0 select2" required>
+                {% if not class.assigned_faculty %}
+                <option value="" selected></option>
+                {% else %}
+                <option value=""></option>
+                {% endif %}
+                {% for faculty in faculties %}
+                {% if class.assigned_faculty == faculty %}
+                <option value="{{ faculty.id }}" selected>{{ faculty.user.first_name }} {{ faculty.user.last_name }}</option>
+                {% else %}
+                <option value="{{ faculty.id }}">{{ faculty.user.first_name }} {{ faculty.user.last_name }}</option>
+                {% endif %}
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group mb-3 ">
+            <label for="school_year" class="control-label">School Year</label>
+            <input type="text" class="form-control rounded-0" id="school_year" name="school_year" value="{{ class.school_year }}" required>
+        </div>
+        <div class="form-group mb-3 ">
+            <label for="level" class="control-label">Level</label>
+            <input type="text" class="form-control rounded-0" id="level" name="level" value="{{ class.level }}" required>
+        </div>
+        <div class="form-group mb-3 ">
+            <label for="name" class="control-label">Class Name</label>
+            <input type="text" class="form-control rounded-0" id="name" name="name" value="{{ class.name }}" required>
+        </div>
+    </form>
+</div>
+<script>
+    $(function() {
+        $('#uni_modal').on('shown.bs.modal', function() {
+            $('.select2').select2({
+                placeholder: 'Please Select Here',
+                width: '100%',
+                dropdownParent: $('#uni_modal')
+            })
+        })
+        $('#class-form').submit(function(e) {
+            e.preventDefault();
+            var _this = $(this)
+            $('.err-msg').remove();
+            var el = $('<div>')
+            el.addClass("alert alert-danger err-msg")
+            el.hide()
+            if (_this[0].checkValidity() == false) {
+                _this[0].reportValidity();
+                return false;
+            }
+            start_loader();
+            $.ajax({
+                url: "{% url 'save-class' %}",
+                data: new FormData($(this)[0]),
+                cache: false,
+                contentType: false,
+                processData: false,
+                method: 'POST',
+                type: 'POST',
+                dataType: 'json',
+                error: err => {
+                    console.log(err)
+                    alert("An error occured ", 'error');
+                    end_loader();
+                },
+                success: function(resp) {
+                    if (typeof resp == 'object' && resp.status == 'success') {
+                        el.removeClass("alert alert-danger err-msg ")
+                        location.reload()
+                    } else if (resp.status == 'failed' && !!resp.msg) {
+                        el.html(resp.msg)
+                    } else {
+                        el.text("An error occured ", 'error');
+                        end_loader();
+                        console.err(resp)
+                    }
+                    _this.prepend(el)
+                    el.show('slow')
+                    $("html, body, .modal ").scrollTop(0);
+                    end_loader()
+                }
+            })
+        })
+    })
+</script>

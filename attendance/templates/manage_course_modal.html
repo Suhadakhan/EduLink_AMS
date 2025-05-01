@@ -1,0 +1,55 @@
+<div class="container-fluid">
+    <form action="{% url 'save-course' %}" id="course-form" method="post">
+        {% csrf_token %}
+        {% if course %}
+        <input type="hidden" name="id" value="{{ course.id }}">
+        {% endif %}
+        
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Department</label>
+                <select name="department" 
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                        required>
+                    <option value="">Select Department</option>
+                    {% for dept in departments %}
+                    <option value="{{ dept.id }}" {% if course.department_id == dept.id %}selected{% endif %}>
+                        {{ dept.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Course Name</label>
+                <input type="text" name="name" value="{{ course.name|default:'' }}" 
+                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                       required>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Description</label>
+                <textarea name="description" rows="3" 
+                          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">{{ course.description|default:'' }}</textarea>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Status</label>
+                <select name="status" 
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                    <option value="1" {% if course.status == 1 %}selected{% endif %}>Active</option>
+                    <option value="2" {% if course.status == 2 %}selected{% endif %}>Inactive</option>
+                </select>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+    console.log('manage_course_modal.html loaded'); // Debug log
+    
+    $(document).ready(function() {
+        console.log('Document ready in manage_course_modal.html'); // Debug log
+        const form = document.querySelector('#course-form');
+        console.log('Found form:', form); // Debug log
+    }); 

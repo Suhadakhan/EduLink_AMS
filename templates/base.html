@@ -1,0 +1,98 @@
+{% if user.is_authenticated %}
+<nav class="mt-6">
+    <!-- Common navigation for all authenticated users -->
+    <div class="px-4 py-3 text-xs font-semibold text-gray-400 uppercase">
+        Main Menu
+    </div>
+    
+    <a href="{% url 'home-page' %}" 
+       class="flex items-center px-6 py-3 text-gray-300 hover:bg-gray-800 hover:text-white">
+        <i class="fas fa-home mr-3"></i>
+        Dashboard
+    </a>
+
+    {% if user.profile.user_type == 1 %}  {# Admin #}
+    <div class="px-4 py-3 text-xs font-semibold text-gray-400 uppercase">
+        Administration
+    </div>
+    <a href="{% url 'data-management' %}" class="nav-item">
+        <i class="fas fa-database mr-3"></i> Data Management
+    </a>
+    <a href="{% url 'department-page' %}" class="nav-item">
+        <i class="fas fa-building mr-3"></i> Departments
+    </a>
+    <a href="{% url 'course-page' %}" class="nav-item">
+        <i class="fas fa-book mr-3"></i> Courses
+    </a>
+    <a href="{% url 'faculty-page' %}" class="nav-item">
+        <i class="fas fa-chalkboard-teacher mr-3"></i> Faculty
+    </a>
+    <a href="{% url 'student-page' %}" class="nav-item">
+        <i class="fas fa-user-graduate mr-3"></i> Students
+    </a>
+    <a href="{% url 'class-page' %}" class="nav-item">
+        <i class="fas fa-chalkboard mr-3"></i> Classes
+    </a>
+
+    {% elif user.profile.user_type == 2 %}  {# Faculty #}
+    <div class="px-4 py-3 text-xs font-semibold text-gray-400 uppercase">
+        Faculty Tools
+    </div>
+    <a href="{% url 'attendance-class' %}" class="nav-item">
+        <i class="fas fa-clipboard-list mr-3"></i> Attendance
+    </a>
+    <a href="{% url 'quiz-page' %}" class="nav-item">
+        <i class="fas fa-question-circle mr-3"></i> Quizzes
+    </a>
+    <a href="{% url 'class-page' %}" class="nav-item">
+        <i class="fas fa-chalkboard mr-3"></i> My Classes
+    </a>
+
+    {% elif user.profile.user_type == 3 %}  {# Student #}
+    <div class="space-y-2">
+        <div class="px-4 py-2 text-xs font-semibold text-gray-400 uppercase border-b border-gray-700">
+            Main Menu
+        </div>
+        <a href="{% url 'home-page' %}" class="nav-item">
+            <i class="fas fa-home mr-3"></i> Dashboard
+        </a>
+
+        <div class="mt-6 px-4 py-2 text-xs font-semibold text-gray-400 uppercase border-b border-gray-700">
+            Academic
+        </div>
+        <div class="space-y-1">
+            <a href="{% url 'class-schedule' %}" class="nav-item">
+                <i class="fas fa-calendar mr-3"></i> My Schedule
+            </a>
+            <a href="{% url 'student-attendance' %}" class="nav-item">
+                <i class="fas fa-clipboard-list mr-3"></i> My Attendance
+            </a>
+        </div>
+
+        <div class="mt-6 px-4 py-2 text-xs font-semibold text-gray-400 uppercase border-b border-gray-700">
+            Student Services
+        </div>
+        <div class="space-y-1">
+            <a href="{% url 'leave-application' %}" class="nav-item">
+                <i class="fas fa-calendar-minus mr-3"></i> Leave Application
+            </a>
+            <a href="{% url 'feedback' %}" class="nav-item">
+                <i class="fas fa-comment mr-3"></i> Feedback
+            </a>
+        </div>
+
+        <div class="mt-6 px-4 py-2 text-xs font-semibold text-gray-400 uppercase border-b border-gray-700">
+            Account
+        </div>
+        <div class="space-y-1">
+            <a href="{% url 'profile' %}" class="nav-item">
+                <i class="fas fa-user mr-3"></i> Profile
+            </a>
+            <a href="{% url 'logout' %}" class="nav-item text-red-500">
+                <i class="fas fa-sign-out-alt mr-3"></i> Logout
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</nav>
+{% endif %} 

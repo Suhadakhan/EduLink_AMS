@@ -1,0 +1,305 @@
+{% extends 'base.html' %}
+{% block title %}Admin Dashboard - Edulink{% endblock %}
+
+{% block authenticated_content %}
+<div class="space-y-6">
+    <!-- Global Search Bar -->
+    <div class="bg-white shadow rounded-lg p-6 mb-6">
+        <div class="max-w-4xl mx-auto">
+            <div class="flex flex-col md:flex-row gap-4">
+                <div class="flex-1">
+                    <input type="text" 
+                           id="global-search" 
+                           class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                           placeholder="Search across Dashboard, Departments, Courses, Faculty, Students...">
+                </div>
+                <div>
+                    <button id="search-clear" 
+                            class="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200">
+                        Clear
+                    </button>
+                </div>
+            </div>
+            <!-- Search Results Container -->
+            <div id="search-results" class="mt-4 hidden">
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+                    <div class="divide-y divide-gray-200">
+                        <!-- Results will be inserted here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <!-- Total Students -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-blue-100 text-blue-600">
+                    <i class="fas fa-user-graduate text-2xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm text-gray-500">Total Students</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ total_students }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Faculty -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-green-100 text-green-600">
+                    <i class="fas fa-chalkboard-teacher text-2xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm text-gray-500">Total Faculty</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ total_faculty }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Courses -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-purple-100 text-purple-600">
+                    <i class="fas fa-book text-2xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm text-gray-500">Total Courses</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ total_courses }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Departments -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-yellow-100 text-yellow-600">
+                    <i class="fas fa-building text-2xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm text-gray-500">Total Departments</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ total_departments }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Students per Course Chart -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-lg font-semibold mb-4">Students per Course</h3>
+            <div style="height: 300px;">
+                <canvas id="studentsPerCourseChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Faculty per Department Chart -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-lg font-semibold mb-4">Faculty per Department</h3>
+            <div style="height: 300px;">
+                <canvas id="facultyPerDeptChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <h3 class="text-lg font-semibold mb-4">Recent Activity</h3>
+        <div class="space-y-4">
+            {% for activity in recent_activities %}
+            <div class="flex items-center">
+                <div class="w-2 h-2 rounded-full bg-blue-500 mr-3"></div>
+                <p class="text-sm text-gray-600">{{ activity.message }}</p>
+                <span class="ml-auto text-xs text-gray-400">{{ activity.timestamp|timesince }} ago</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Include Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('global-search');
+    const searchResults = document.getElementById('search-results');
+    const clearButton = document.getElementById('search-clear');
+    let searchTimeout;
+
+    function performSearch() {
+        const query = searchInput.value.trim();
+        if (query.length < 2) {
+            searchResults.classList.add('hidden');
+            return;
+        }
+
+        // Show loading state
+        searchResults.classList.remove('hidden');
+        searchResults.innerHTML = '<div class="p-4 text-gray-600">Searching...</div>';
+
+        fetch(`/admin-search/?q=${encodeURIComponent(query)}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    displayResults(data.results);
+                } else {
+                    searchResults.innerHTML = `<div class="p-4 text-red-600">${data.message}</div>`;
+                }
+            })
+            .catch(error => {
+                console.error('Search error:', error);
+                searchResults.innerHTML = '<div class="p-4 text-red-600">An error occurred while searching</div>';
+            });
+    }
+
+    function displayResults(results) {
+        if (!results || Object.keys(results).every(key => results[key].length === 0)) {
+            searchResults.innerHTML = '<div class="p-4 text-gray-600">No results found</div>';
+            return;
+        }
+
+        let html = '';
+        
+        // Categories and their icons
+        const categories = {
+            'departments': 'fa-building',
+            'courses': 'fa-book',
+            'faculty': 'fa-chalkboard-teacher',
+            'students': 'fa-user-graduate'
+        };
+
+        // Generate results HTML
+        Object.entries(categories).forEach(([category, icon]) => {
+            if (results[category] && results[category].length > 0) {
+                html += `
+                    <div class="p-4">
+                        <h3 class="font-semibold text-gray-900 mb-2 capitalize">
+                            <i class="fas ${icon} mr-2"></i>${category}
+                        </h3>
+                        <ul class="space-y-2">
+                `;
+                
+                results[category].forEach(item => {
+                    html += `
+                        <li class="pl-4">
+                            <a href="${item.url}" class="text-indigo-600 hover:text-indigo-800">
+                                ${item.name}
+                            </a>
+                        </li>
+                    `;
+                });
+                
+                html += `
+                        </ul>
+                    </div>
+                `;
+            }
+        });
+
+        searchResults.innerHTML = html;
+    }
+
+    searchInput.addEventListener('input', () => {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(performSearch, 300);
+    });
+
+    clearButton.addEventListener('click', () => {
+        searchInput.value = '';
+        searchResults.classList.add('hidden');
+    });
+
+    // Close search results when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+            searchResults.classList.add('hidden');
+        }
+    });
+
+    // Parse the JSON data
+    const courseLabels = JSON.parse('{{ course_labels|safe }}');
+    const courseData = JSON.parse('{{ course_data|safe }}');
+    const deptLabels = JSON.parse('{{ dept_labels|safe }}');
+    const deptData = JSON.parse('{{ dept_data|safe }}');
+
+    // Students per Course Chart
+    const studentsCtx = document.getElementById('studentsPerCourseChart').getContext('2d');
+    new Chart(studentsCtx, {
+        type: 'bar',
+        data: {
+            labels: courseLabels,
+            datasets: [{
+                label: 'Number of Students',
+                data: courseData,
+                backgroundColor: 'rgba(59, 130, 246, 0.5)',
+                borderColor: 'rgb(59, 130, 246)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    });
+
+    // Faculty per Department Chart with adjusted options
+    const facultyCtx = document.getElementById('facultyPerDeptChart').getContext('2d');
+    new Chart(facultyCtx, {
+        type: 'doughnut',
+        data: {
+            labels: deptLabels,
+            datasets: [{
+                data: deptData,
+                backgroundColor: [
+                    'rgba(59, 130, 246, 0.5)',
+                    'rgba(16, 185, 129, 0.5)',
+                    'rgba(139, 92, 246, 0.5)',
+                    'rgba(245, 158, 11, 0.5)',
+                    'rgba(239, 68, 68, 0.5)'
+                ],
+                borderColor: [
+                    'rgb(59, 130, 246)',
+                    'rgb(16, 185, 129)',
+                    'rgb(139, 92, 246)',
+                    'rgb(245, 158, 11)',
+                    'rgb(239, 68, 68)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'right',
+                    labels: {
+                        boxWidth: 12,
+                        padding: 10
+                    }
+                }
+            },
+            layout: {
+                padding: {
+                    left: 10,
+                    right: 10,
+                    top: 0,
+                    bottom: 0
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %} 

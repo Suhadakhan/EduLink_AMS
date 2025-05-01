@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% block title %}Submit Feedback - Edulink{% endblock %}
+
+{% block authenticated_content %}
+<div class="bg-white rounded-lg shadow-lg p-6">
+    <h2 class="text-2xl font-bold mb-6">Submit Feedback</h2>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="mb-4 p-4 rounded-md {% if message.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-700{% endif %}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="POST" class="space-y-6">
+        {% csrf_token %}
+        
+        <div>
+            <label class="block text-sm font-medium text-gray-700">Subject</label>
+            <input type="text" name="subject" required
+                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium text-gray-700">Message</label>
+            <textarea name="message" rows="4" required
+                      class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500"></textarea>
+        </div>
+
+        <div>
+            <button type="submit" 
+                    class="w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                Submit Feedback
+            </button>
+        </div>
+    </form>
+
+    <!-- Previous Feedback -->
+    {% if feedback_list %}
+    <div class="mt-8">
+        <h3 class="text-lg font-semibold mb-4">Previous Feedback</h3>
+        <div class="space-y-4">
+            {% for feedback in feedback_list %}
+            <div class="border rounded-lg p-4">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="font-medium">{{ feedback.subject }}</p>
+                        {% if feedback.created_at %}
+                        <p class="text-sm text-gray-500">{{ feedback.created_at|date:"M d, Y H:i" }}</p>
+                        {% endif %}
+                        <p class="mt-2">{{ feedback.message }}</p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %} 

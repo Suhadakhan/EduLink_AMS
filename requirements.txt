@@ -1,0 +1,11 @@
+Django>=4.2
+Pillow
+whitenoise
+django-tailwind>=3.8.0
+django-crispy-forms>=2.1
+crispy-tailwind>=1.0.0
+pandas>=2.0.0
+openpyxl>=3.1.0
+reportlab>=4.0.4
+XlsxWriter>=3.1.0
+python-dateutil>=2.8.2
